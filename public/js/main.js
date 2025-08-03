@@ -661,10 +661,40 @@ class AdvanceTravels {
       this.openModal('loginModal');
     };
 
-   // Encapsulate everything in an IIFE to avoid polluting global scope
-(() => {
-  // Modal handling
-  function openModal(modalId) {
+    // Payment modal
+    window.openPaymentModal = () => {
+      this.openModal('paymentModal');
+    };
+
+    // Close modal when clicking close button or outside
+    document.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modal = e.target.closest('.modal');
+        this.closeModal(modal.id);
+      });
+    });
+
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.closeModal(modal.id);
+        }
+      });
+    });
+
+    // Escape key to close modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal').forEach(modal => {
+          if (modal.style.display === 'flex') {
+            this.closeModal(modal.id);
+          }
+        });
+      }
+    });
+  }
+
+  openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.style.display = 'flex';
@@ -673,7 +703,7 @@ class AdvanceTravels {
     }
   }
 
-  function closeModal(modalId) {
+  closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
       const content = modal.querySelector('.modal-content');
@@ -686,50 +716,18 @@ class AdvanceTravels {
     }
   }
 
-  // Open payment modal globally
-  window.openPaymentModal = () => {
-    openModal('paymentModal');
-  };
-
-  // Close modal when clicking close button or outside modal
-  document.querySelectorAll('.close-modal').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const modal = e.target.closest('.modal');
-      if (modal) closeModal(modal.id);
-    });
-  });
-
-  document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal(modal.id);
-      }
-    });
-  });
-
-  // Close on Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal').forEach(modal => {
-        if (modal.style.display === 'flex') {
-          closeModal(modal.id);
-        }
+  // Animations
+  setupAnimations() {
+    // Hover effects
+    document.querySelectorAll('.hover-lift').forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        element.style.transform = 'translateY(-8px)';
       });
-    }
-  });
-
-  // Hover animation
-  document.querySelectorAll('.hover-lift').forEach(element => {
-    element.addEventListener('mouseenter', () => {
-      element.style.transform = 'translateY(-8px)';
+      
+      element.addEventListener('mouseleave', () => {
+        element.style.transform = 'translateY(0)';
+      });
     });
-
-    element.addEventListener('mouseleave', () => {
-      element.style.transform = 'translateY(0)';
-    });
-  });
-})();
-
 
     // Button ripple effect
     document.querySelectorAll('.btn').forEach(btn => {
