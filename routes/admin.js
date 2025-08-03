@@ -4,6 +4,7 @@ const ChatMessage = require('../models/ChatMessage');
 const Update = require('../models/Update');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const path = require('path');
 const router = express.Router();
 
@@ -147,6 +148,94 @@ router.post('/users/:id/status', requireAdmin, [
   } catch (error) {
     console.error('Status update error:', error);
     res.status(500).json({ success: false, message: 'Failed to update status' });
+  }
+});
+
+// Get user documents
+router.get('/users/:id/documents', requireAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, documents: user.documents });
+  } catch (error) {
+    console.error('Get user documents error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get user documents' });
+  }
+});
+
+// Send email to client
+router.post('/send-email', requireAdmin, [
+  body('clientEmail').isEmail().withMessage('Valid email is required'),
+  body('subject').trim().isLength({ min: 1 }).withMessage('Subject is required'),
+  body('message').trim().isLength({ min: 1 }).withMessage('Message is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { clientEmail, clientName, subject, message } = req.body;
+
+    // Create transporter
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail', // or your email service
+      auth: {
+        user: process.env.EMAIL_USER || 'support@advancetravels.com',
+        pass: process.env.EMAIL_PASS // You'll need to set this in your .env file
+      }
+    });
+
+    // Email template
+    const emailTemplate = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #1e40af, #8b5cf6); padding: 2rem; text-align: center;">
+          <h1 style="color: white; margin: 0;">Advanze Travels</h1>
+          <p style="color: white; margin: 0.5rem 0 0 0;">Your International Career Partner</p>
+        </div>
+        
+        <div style="padding: 2rem; background: white;">
+          <h2 style="color: #1e40af; margin-bottom: 1rem;">${subject}</h2>
+          
+          <p style="color: #4b5563; margin-bottom: 1rem;">Dear ${clientName || 'Valued Client'},</p>
+          
+          <div style="color: #374151; line-height: 1.6; margin-bottom: 2rem;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+          
+          <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem; color: #6b7280; font-size: 0.9rem;">
+            <p><strong>Best regards,</strong><br>
+            The Advanze Travels Team</p>
+            
+            <p style="margin-top: 1rem;">
+              📧 support@advancetravels.com<br>
+              📞 +120 185 54082<br>
+              🌐 www.advancetravels.com
+            </p>
+          </div>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 1rem; text-align: center; color: #6b7280; font-size: 0.8rem;">
+          <p>© 2025 Advanze Travels. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Advanze Travels" <${process.env.EMAIL_USER || 'support@advancetravels.com'}>`,
+      to: clientEmail,
+      subject: `${subject} - Advanze Travels`,
+      html: emailTemplate
+    });
+
+    res.json({ success: true, message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Send email error:', error);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
   }
 });
 

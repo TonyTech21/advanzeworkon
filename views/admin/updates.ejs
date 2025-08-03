@@ -12,7 +12,8 @@
             <a href="/admin/users" class="nav-btn">Users</a>
             <!-- <a href="/admin/chat" class="nav-btn">Chat</a> -->
             <a href="/admin/updates" class="nav-btn active">Updates</a>
-            <a href="#" onclick="adminLogout()" class="nav-btn logout">Logout</a>
+            <span class="nav-btn admin-info">System Administrator</span>
+            <a href="#" onclick="confirmAdminLogout()" class="nav-btn logout">Logout</a>
         </div>
         
         <div class="updates-actions">
@@ -165,6 +166,64 @@
     background: #dc2626;
 }
 
+.action-btn.download {
+    background: var(--success-color);
+}
+
+.action-btn.download:hover {
+    background: #16a34a;
+}
+
+.action-btn.email {
+    background: var(--secondary-color);
+}
+
+.action-btn.email:hover {
+    background: #7c3aed;
+}
+
+.admin-info {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.logout-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn-cancel {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    background: #4b5563;
+}
+
+.btn-confirm {
+    background: var(--error-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-confirm:hover {
+    background: #dc2626;
+}
+
 .form-group textarea {
     width: 100%;
     padding: 1rem;
@@ -236,6 +295,12 @@ document.getElementById('createUpdateForm').addEventListener('submit', async (e)
         showNotification('Network error. Please try again.', 'error');
     }
 });
+
+function confirmAdminLogout() {
+    if (confirm('Are you sure you want to log out of the admin panel?')) {
+        adminLogout();
+    }
+}
 
 function adminLogout() {
     fetch('/auth/logout', { method: 'POST' })
